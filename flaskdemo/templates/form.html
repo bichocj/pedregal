@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>{{title}}</h1>
+    <form method="POST" action="{{action}}">
+      <div class="form-group">
+        <label for="exampleInputEmail1">Nombre</label>
+        <input type="text" name="name" value="{{person.name}}"  class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="exampleInputEmail1">Apellido Paterno</label>
+        <input type="text" name="last_name" value="{{person.last_name}}"  class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="exampleInputEmail1">Apellido Materno</label>
+        <input type="text" name="mother_last_name" value="{{person.mother_last_name}}"  class="form-control" required>
+      </div>
+      <div class="form-group">
+        <input type="date" name="date_of_birth" value="{{person.date_of_birth}}" class="form-control" required>
+      </div>
+      
+      <a class="btn btn-danger" href="/">Cancelar</a>
+      <button class="btn btn-primary" type="submit">Guardar</button>
+    </form>
+{% endblock %}

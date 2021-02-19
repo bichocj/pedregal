@@ -1,0 +1,166 @@
+<html>
+  <head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" rel="stylesheet" >
+  </head>
+  <body>
+
+    <div class="container">
+      <div class="row">
+        <div class="col mt-4">
+            <div>
+                <div class="d-flex justify-content-between">
+                    <h1>Personas</h1>              
+                    <div class="text-right">
+                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
+                            Crear nuevo
+                        </button>
+                    </div>
+                  </div>                
+    
+                <table class="table mt-3">
+                    <thead>
+                    <tr>
+                        <th>Nombres</th>
+                        <th>Apellido Paterno</th>
+                        <th>Apellido Materno</th>
+                        <th>Fecha de Nacimiento</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            
+            <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="modalTitle">Modal title</h5>
+                    </div>
+                    <div class="modal-body">
+                        <form method="POST" action="{{action}}">
+                            <div class="form-group">
+                            <label for="exampleInputEmail1">Nombre</label>
+                            <input type="text" id="name" value=""  class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                            <label for="exampleInputEmail1">Apellido Paterno</label>
+                            <input type="text" id="last_name" value=""  class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                            <label for="exampleInputEmail1">Apellido Materno</label>
+                            <input type="text" id="mother_last_name" value=""  class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                            <input type="date" id="date_of_birth" value="" class="form-control" required>
+                            </div>
+                            
+                            <button class="btn btn-danger" type="button" onclick="closeModal()">Cancelar</button>
+                            <button class="btn btn-primary" type="submit">Guardar</button>
+                        </form>
+                    </div>
+
+                    <!-- <div class="modal-footer">
+                        <button type="button" class="btn btn-primary">Save changes</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                      </div>
+                    </div> -->
+                  </div>
+                </div>
+
+            </div>
+        </div>
+      </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+    <script>
+        let editingId = undefined;
+        const loadPeople = async() => {
+            const response = await fetch('/people');
+            const people = await response.json();
+            $('table tbody').html('');
+            people.forEach(person => {
+                $('table tbody').append(`
+                    <tr>
+                        <td>${person.name}</td>
+                        <td>${person.last_name}</td>
+                        <td>${person.mother_last_name}</td>
+                        <td>${person.date_of_birth}</td>
+                        <td>
+                            <button class="btn btn-danger" onclick="deletePerson(${person.id})">Eliminar</button> 
+                            <button class="btn btn-info" onclick="fillPersonForm(${person.id},'${person.name}','${person.last_name}', '${person.mother_last_name}', '${people.date_of_birth}')">Editar</button>
+                        </td>
+                    </tr>
+                `);
+            })
+        }
+        $(document).ready(function() {
+            loadPeople()
+        })
+
+       $('form').submit(function(e) {
+           e.preventDefault()
+           let url = '/people';
+           let method = 'post';
+           if(editingId) {
+               url += `/${editingId}`;
+               method = 'put';
+           }
+
+           const data = {
+               name: $('#name').val(),
+               last_name: $('#last_name').val(),
+               mother_last_name: $('#mother_last_name').val(),
+               date_of_birth: $('#date_of_birth').val(),
+           }
+            fetch(url, {
+                method,
+                headers: {
+                'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            }).then(response => {
+                cleanForm();
+                loadPeople();
+                closeModal();
+            });
+           return false;
+       }) 
+
+       function deletePerson(personId) {            
+            fetch(`/people/${personId}`, {
+                method: 'DELETE'                
+            }).then(response => {                
+                loadPeople();
+            });            
+       }
+
+       function fillPersonForm(id, name, last_name, mother_last_name, date_of_birth) {
+            editingId = id;
+            $('#name').val(name);
+            $('#last_name').val(last_name);
+            $('#mother_last_name').val(mother_last_name);
+            $('#date_of_birth').val(date_of_birth);
+            $('#exampleModal').modal('show');
+       }
+
+       function cleanForm() {
+            editingId = undefined;
+            $('#name').val('');
+            $('#last_name').val('');
+            $('#mother_last_name').val('');
+            $('#date_of_birth').val('');
+       
+        }
+
+        function closeModal() {
+            $('#exampleModal').modal('hide')
+        }
+    </script>
+  </body>
+</html>
